@@ -1,0 +1,65 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vbhs"
+version = "0.1.0"
+description = "Human to robot action transfer using smart glasses."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+keywords = ["robotics", "computer-vision", "hand-tracking", "teleoperation", "robot-control"]
+authors = [
+    {name = "Hendrik Chiche, Antoine Jamme"}
+]
+
+dependencies = [
+    # Machine Learning & Robotics
+    "lerobot[feetech]>=0.4.1",
+    "wilor_mini @ git+https://github.com/OMGrab/WiLoR-mini",
+
+    # Computer Vision & Image Processing
+    "opencv-python-headless>=4.8.0",
+    "numpy>=1.24.0",
+    "mediapipe>=0.10.0",
+
+    # RealSense Camera Support
+    "pyrealsense2>=2.55.0; platform_system == 'Windows' or platform_system == 'Linux'",
+    "pyrealsense2-macosx>=2.54.2; platform_system == 'Darwin'",
+
+    # Scientific Computing
+    "scipy>=1.10.0",
+
+    # Physics Simulation
+    "pybullet>=3.2.5",
+
+    # Visualization & 3D Rendering
+    "matplotlib>=3.7.0",
+    "pyrender>=0.1.45",
+    "trimesh>=4.9.0",
+
+    # Configuration & CLI
+    "draccus>=0.10.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/chichonnade/Vision-Based-Hand-Shadowing-for-Robotic-Manipulation-via-Inverse-Kinematics"
+Repository = "https://github.com/chichonnade/Vision-Based-Hand-Shadowing-for-Robotic-Manipulation-via-Inverse-Kinematics.git"
+Issues = "https://github.com/chichonnade/Vision-Based-Hand-Shadowing-for-Robotic-Manipulation-via-Inverse-Kinematics/issues"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+vbhs = ["*.json"]
+
+[tool.setuptools.data-files]
+"share/vbhs/robot" = ["robot/*.urdf"]
+"share/vbhs/robot/meshes" = ["robot/meshes/*.STL"]
+"share/vbhs/hardware" = ["hardware/*.STL", "hardware/*.PNG", "hardware/README.md"]
+"share/vbhs/assets" = ["assets/*.jpg", "assets/*.gif"]
+
