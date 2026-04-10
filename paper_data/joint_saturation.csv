@@ -1,0 +1,7 @@
+joint,lower_limit_rad,upper_limit_rad,at_lower_pct,at_upper_pct,near_limit_pct,mean_rad,std_rad
+shoulder_pan,-1.9199,1.9199,0.12,0.00,0.12,-0.2878,0.2776
+shoulder_lift,-1.7453,1.7453,0.23,0.00,0.23,0.1196,0.5036
+elbow_flex,-1.7453,1.5708,1.87,0.00,1.87,-0.0159,0.6580
+wrist_flex,-1.6581,1.6581,0.00,4.68,4.68,0.2143,0.6496
+wrist_roll,-2.7925,2.7925,0.00,2.11,2.11,1.8919,0.3199
+gripper,-0.1745,1.7453,0.00,0.00,0.00,0.6365,0.4698

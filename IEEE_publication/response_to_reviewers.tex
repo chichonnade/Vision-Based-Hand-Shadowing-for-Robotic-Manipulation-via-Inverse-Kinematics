@@ -1,0 +1,232 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\newcommand{\concern}[1]{\textbf{Reviewer Concern:} \textit{#1}}
+\newcommand{\response}[1]{\textbf{Response:} #1}
+\newcommand{\action}[1]{\textbf{Action:} \textcolor{blue}{#1}}
+
+\title{Response to Reviewers\\
+\large Manuscript \# Access-2026-11582\\
+``Vision-Based Hand Shadowing for Robotic Manipulation via Inverse Kinematics''}
+\author{Hendrik Chiche, Antoine Jamme, Trevor Rigoberto Martinez, Gabriel Gomes}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+We thank the Associate Editor and all four reviewers for their thorough and constructive feedback. We have carefully addressed every concern. Below, each comment is paired with our response and the specific action taken in the revised manuscript. All changes are highlighted in the resubmitted PDF.
+
+\section*{Reviewer 1}
+
+\begin{enumerate}[label=\textbf{R1.\arabic*}]
+
+\item \concern{Novelty not sufficiently distinguished from prior teleoperation and imitation learning frameworks. Contributions appear incremental.}
+
+\response{We have clarified the novelty positioning. Our pipeline is distinguished by being CPU-only, using a single egocentric RGB-D camera, and needing no specialised hardware beyond 3D-printed accessories. We now discuss recent marker-free teleoperation works (AnyTeleop, Dex-Cap, H2O) in the Related Work and articulate how our approach differs.}
+
+\action{Introduction rewritten with 2 new paragraphs on novelty positioning (Section I). New ``Marker-Free Hand Retargeting'' subsection added to Related Work (Section II). Three new references added.}
+
+\item \concern{System operates at approximately 5 FPS (213 ms latency), severely limiting real-time applicability.}
+
+\response{The offline design is deliberate: the pipeline serves as a trajectory \emph{generation} tool for data collection, not a real-time controller. A key advantage of offline processing is that the pipeline can extract robot joint trajectories from any pre-recorded RGB-D video captured with a known camera pose, generating imitation-learning action labels from human demonstrations without requiring any robot hardware during the recording phase---only at replay time. This eliminates the need for paired leader--follower teleoperation during data collection.}
+
+\action{Latency discussion expanded with offline-design justification and action-label generation from pre-recorded video (Section VI.A).}
+
+\item \concern{Drastic performance drop from 90\% to 9.3\% in real-world environments.}
+
+\response{We now provide quantitative hand detection statistics (17.1\% no-detection rate even in structured environments, Section VI.J) and discuss concrete mitigation strategies. Additionally, we integrated WiLoR (Potamias et al., 2024) as an alternative hand detector, achieving a 7.8\% improvement in detection rate and 8.2\% improvement in valid IK target rate over MediaPipe on a 347-frame evaluation (Section VI.L, Table~VII).}
+
+\action{Hand Detection Reliability subsection added (Section VI.J). New ``Occlusion Mitigation via WiLoR'' subsection added (Section VI.L) with quantitative comparison. In-the-wild discussion strengthened with detection statistics and mitigation strategies.}
+
+\item \concern{No robust occlusion-handling mechanism beyond simple fallback heuristics.}
+
+\response{We acknowledge this limitation and now frame the fallback hierarchy as a graceful degradation strategy. The hand-swap correction heuristic halves erroneous classifications (5.6\% $\to$ 2.8\%). As a concrete occlusion-mitigation step, we integrated and evaluated WiLoR as a drop-in replacement for MediaPipe, recovering 3.5\% of frames that MediaPipe missed entirely (Section VI.L). Future Work discusses further approaches (temporal Kalman filtering, multi-camera setups).}
+
+\action{Gripper Control section rewritten to explain fallback rationale (Section IV.G). New WiLoR evaluation subsection added (Section VI.L). Future Work expanded.}
+
+\item \concern{Evaluation restricted to a single pick-and-place task, single robot, constrained setup.}
+
+\response{The pick-and-place task was deliberately chosen as the simplest manipulation task that exercises the \emph{entire} pipeline end-to-end---from hand tracking through IK solving to physical grasping---while remaining reliably achievable within the SO-ARM101's hardware constraints (5 arm joints, two-finger gripper, $\sim$300\,mm reach). More complex tasks would conflate pipeline failures with fundamental hardware limitations, preventing a clean evaluation of the retargeting approach itself. To compensate for the single task, we now provide significantly richer quantitative analysis: IK solver accuracy, trajectory smoothness, EMA ablation over 7 parameter values, joint saturation, sim-to-real transfer, and success rate confidence intervals across 3 independent runs---7 new metrics on this benchmark. Extension to diverse tasks and higher-DOF robots is discussed as future work.}
+
+\action{Task choice justification added to Section V.B. Seven new quantitative evaluation subsections added (Sections VI.E--VI.K). Success rate now reported with confidence intervals across 3 runs.}
+
+\item \concern{VLA comparison not fair or comprehensive. No statistical significance reported.}
+
+\response{We now report the IK success rate as $86.7\% \pm 4.2\%$ across 3 independent runs. We explicitly frame the IK pipeline as a zero-shot baseline rather than a competing method, and acknowledge the training configuration differences.}
+
+\action{Success rate table updated with CIs (Table III). VLA comparison discussion revised.}
+
+\item \concern{Heavy dependence on MediaPipe and heuristic fallbacks lacks theoretical justification.}
+
+\response{We now provide quantitative analysis of MediaPipe's detection reliability (Section VI.J) and frame the fallback hierarchy as a standard graceful degradation pattern in sensor fusion systems.}
+
+\action{Hand Detection Reliability section added. Gripper fallback explanation rewritten with justification.}
+
+\item \concern{No formal error propagation analysis or quantitative metrics beyond success rate.}
+
+\response{This was the most substantial revision. We now report: IK position error (36.4\,mm mean), per-joint trajectory smoothness (RMS jerk), Cartesian end-effector jitter, an EMA parameter ablation study, joint saturation analysis, sim-to-real tracking comparison, and a WiLoR vs.\ MediaPipe hand detector comparison.}
+
+\action{Eight new quantitative subsections added: IK Solver Accuracy (VI.E), Trajectory Smoothness (VI.F), EMA Ablation (VI.G), End-Effector Trajectory Analysis (VI.H), Joint Saturation (VI.I), Hand Detection Reliability (VI.J), Sim-to-Real Transfer (VI.K), and Occlusion Mitigation via WiLoR (VI.L). Seven new figures and three new tables.}
+
+\end{enumerate}
+
+\section*{Reviewer 2}
+
+\begin{enumerate}[label=\textbf{R2.\arabic*}]
+
+\item \concern{Core process relies on existing tools (MediaPipe, PyBullet) without theoretical breakthroughs.}
+
+\response{We now clearly position the contribution as a systems integration contribution: the first complete CPU-only pipeline from egocentric RGB-D to low-cost arm trajectory, with comprehensive quantitative evaluation. We add a citation to the DLS-IK theoretical foundation (Wampler, 1986).}
+
+\action{Introduction and Related Work revised. DLS-IK citation added. IK section now references Wampler (1986).}
+
+\item \concern{213ms latency, offline only; needs 30 FPS for real-time.}
+
+\response{See R1.2 response. The offline design is deliberate.}
+
+\action{Same as R1.2.}
+
+\item \concern{Success rate drops to 9.3\% due to occlusion; no compensation mechanism proposed.}
+
+\response{See R1.3 and R1.4 responses. We now provide a concrete occlusion compensation mechanism: WiLoR integration with a 7.8\% detection-rate improvement over MediaPipe (Section VI.L).}
+
+\action{Same as R1.3 and R1.4. New WiLoR evaluation subsection (Section VI.L).}
+
+\item \concern{Only one monotone task tested; needs diverse benchmarks and comparison with marker-free teleoperation frameworks.}
+
+\response{We now compare with three marker-free teleoperation frameworks (AnyTeleop, Dex-Cap, H2O) in the Related Work. The pick-and-place task was deliberately selected as the simplest task that exercises the entire pipeline end-to-end while remaining achievable within the SO-ARM101's hardware constraints (5 arm DOF, two-finger gripper, $\sim$300\,mm reach). More complex tasks would conflate pipeline and hardware failures. To provide depth in place of breadth, we now report 7 new quantitative metrics on this benchmark.}
+
+\action{Task justification added (Section V.B). Marker-Free Hand Retargeting subsection added. Seven new evaluation subsections.}
+
+\item \concern{Hard-coded gripper control cannot adapt to complex shapes; needs 6-DoF grasp pose estimation.}
+
+\response{We acknowledge this limitation and add 6-DoF grasp pose estimation as a future work direction.}
+
+\action{Future Work updated with 6-DoF grasp estimation item.}
+
+\end{enumerate}
+
+\section*{Reviewer 3}
+
+\begin{enumerate}[label=\textbf{R3.\arabic*}]
+
+\item \concern{Distinction from existing frameworks not clearly emphasised.}
+
+\response{See R1.1 response.}
+
+\item \concern{$\sim$5 FPS contradicts teleoperation requirements.}
+
+\response{See R1.2 response.}
+
+\item \concern{90\% to 9.3\% drop; no robust occlusion solution.}
+
+\response{See R1.3 and R1.4 responses. WiLoR evaluation (Section VI.L) provides a concrete occlusion mitigation strategy with quantitative results.}
+
+\item \concern{Metrics beyond success rate not evaluated (positional error, trajectory smoothness, IK accuracy).}
+
+\response{See R1.8 response. All requested metrics are now reported.}
+
+\item \concern{Comparison with SOTA incomplete; no traditional teleoperation or IK baselines.}
+
+\response{We now discuss AnyTeleop, Dex-Cap, and H2O in a new Related Work subsection, positioning our approach relative to these frameworks. A direct experimental comparison was not feasible as these systems target different robot platforms and require GPU-based pose estimation or specialised hardware not available in our setup.}
+
+\action{Marker-Free Hand Retargeting subsection added to Related Work (Section II).}
+
+\item \concern{Limited to simple pick-and-place and two environments.}
+
+\response{See R1.5 and R2.4 responses. The task was deliberately chosen to isolate pipeline performance from hardware limitations. Seven new quantitative metrics now provide depth of analysis on this benchmark.}
+
+\item \concern{Key parameters (EMA, IK damping) fixed without ablation study.}
+
+\response{We now provide a comprehensive EMA ablation study across 7 alpha values, showing the smoothness--responsiveness trade-off.}
+
+\action{EMA Smoothing Ablation subsection added (Section VI.G) with figure.}
+
+\item \concern{Sim-to-real discrepancies not quantitatively analysed.}
+
+\response{We now include per-joint tracking error comparison between simulation and physical robot.}
+
+\action{Sim-to-Real Transfer subsection added (Section VI.K) with figure.}
+
+\item \concern{Multi-level fallback lacks theoretical justification.}
+
+\response{See R1.7 response.}
+
+\item \concern{SO-ARM101 limitations not deeply analysed.}
+
+\response{We now provide joint saturation analysis showing $<5\%$ saturation overall, IK accuracy analysis revealing the 5-DOF orientation constraint, and workspace envelope measurements.}
+
+\action{Joint Saturation Analysis (Section VI.I), IK Solver Accuracy (Section VI.E), and End-Effector Trajectory Analysis (Section VI.H) added.}
+
+\item \concern{Applicability to multi-arm, different robots, or higher-DOF not explored.}
+
+\response{The IK orientation error of $163^{\circ}$ directly motivates deployment on higher-DOF arms. The pipeline's modular design (separate detection, IK, and deployment stages) makes it straightforward to swap robot models via URDF. Dual-arm extension is discussed in Future Work.}
+
+\action{Future Work updated with dual-arm extension item.}
+
+\end{enumerate}
+
+\section*{Reviewer 4}
+
+\begin{enumerate}[label=\textbf{R4.\arabic*--14}]
+
+\item[R4.1--3] \concern{Elaborate on egocentric RGB-D, 90\% success rate, and VLA comparison.}
+
+\response{All three are now elaborated with statistical CIs, deeper analysis, and additional metrics.}
+
+\item[R4.4--5] \concern{Highlight research gaps; compare novelty of IK retargeting with other methods.}
+
+\response{See R1.1 response. New Marker-Free Hand Retargeting subsection added.}
+
+\item[R4.6] \concern{Provide more details on DLS IK solver.}
+
+\response{IK section now cites Wampler (1986), explains the DLS formulation, and discusses the 5-DOF constraint.}
+
+\action{IK section revised (Section IV.F).}
+
+\item[R4.7] \concern{Discuss gripper controller fallback hierarchy.}
+
+\response{Fallback explanation rewritten in plain language with justification.}
+
+\action{Gripper Control section revised (Section IV.G).}
+
+\item[R4.8--10] \concern{More unstructured tests, baseline comparisons, deployment challenges.}
+
+\response{Deployment challenges are now discussed in the expanded in-the-wild section and failure modes. Additional baselines compared in Related Work.}
+
+\item[R4.11] \concern{Suggest future research directions (dynamic hand tracking).}
+
+\response{Future Work expanded with three items: occlusion-robust temporal tracking (Kalman filtering, learned depth completion, multi-camera setups), 6-DoF grasp pose estimation, and dual-arm extension.}
+
+\item[R4.12] \concern{Rephrase ``complexity of mapping human hand articulations.''}
+
+\response{Changed to ``difficulty of retargeting human hand motion.''}
+
+\action{Abstract revised.}
+
+\item[R4.13--14] \concern{Cite recent literature; address methodological clarity.}
+
+\response{Three new marker-free teleoperation references added. All notation and methodology clarified per professor feedback.}
+
+\action{References, notation, and equations revised throughout.}
+
+\end{enumerate}
+
+\section*{Additional Revisions}
+
+\begin{itemize}
+\item Defined IK on first use in abstract; consistent ``pipeline'' terminology throughout.
+\item Removed code-level references (class names, function names, library APIs).
+\item Merged architecture diagram and pipeline table into a single figure.
+\item Replaced lab bench photo with annotated hardware diagram and geometry schematic.
+\item Fixed all mathematical notation: $\vect{P}_{\text{cam}}$, EMA equation, $D[u_i, v_i]$, $\vect{P}_1/\vect{P}_2$ symbols, simplified $\mat{R}/\vect{t}$ notation, $(\vect{p}_{\text{target}}, \vect{q}_{\text{target}})$.
+\item Added gripper vectors diagram and tile grid layout figure.
+\item Updated sim-to-real tracking figure with side-by-side simulated and real robot tracking plots.
+\item Added Professor Gabriel Gomes as co-author.
+\item Renamed joint-angle variable from $\theta$ to $\vect{q}$ to avoid ambiguity with camera tilt angle $\theta$.
+\end{itemize}
+
+\end{document}

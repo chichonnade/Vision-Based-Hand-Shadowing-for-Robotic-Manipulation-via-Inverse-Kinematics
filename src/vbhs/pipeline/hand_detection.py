@@ -26,7 +26,10 @@ import cv2
 
 from vbhs.pipeline import transformations
 from vbhs.pipeline import types
-from vbhs.pipeline.hands import wilor_hand_detector
+try:
+    from vbhs.pipeline.hands import wilor_hand_detector
+except ImportError:
+    wilor_hand_detector = None  # WiLoR optional; MediaPipe still works
 
 _logger = logging.getLogger(__name__)
 
@@ -60,10 +63,17 @@ class HandLandmarksFromCameraFrame(
         self._smoothing_alpha = smoothing_alpha
         self._smoothed_left_hand_landmarks: Optional[types.HandPose2D] = None
         self._smoothed_right_hand_landmarks: Optional[types.HandPose2D] = None
-        self._hand_detector = wilor_hand_detector.WilorHandDetector(
-            camera_intrinsics,
-            enable_visualization=enable_mesh_visualization
-        )
+        if wilor_hand_detector is not None:
+            self._hand_detector = wilor_hand_detector.WilorHandDetector(
+                camera_intrinsics,
+                enable_visualization=enable_mesh_visualization
+            )
+        else:
+            from vbhs.pipeline.hands import mediapipe_hand_detector
+            _logger.info("WiLoR not available, falling back to MediaPipe")
+            self._hand_detector = mediapipe_hand_detector.MediaPipeHandDetector(
+                camera_intrinsics
+            )
 
     def _transform(self, camera_frame: types.CameraFrame, /) -> types.HandLandmarksImageSpace:
         """

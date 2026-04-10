@@ -48,7 +48,7 @@ and \uppercase{Gabriel Gomes}\authorrefmark{3}}
 
 \address[1]{University of California, Berkeley, CA 94720 USA (Capstone Project, Fung Institute for Engineering Leadership)}
 \address[2]{OMGrab Inc. (e-mail: hendrik\_chiche@berkeley.edu, antoine\_jamme@berkeley.edu)}
-\address[3]{University of California, Berkeley, Department of Mechanical Engineering, Berkeley, CA 94720 USA (e-mail: tre\_mart@berkeley.edu)}
+\address[3]{University of California, Berkeley, Department of Mechanical Engineering, Berkeley, CA 94720 USA (e-mail: tre\_mart@berkeley.edu, gomes@berkeley.edu)}
 
 \tfootnote{A video demonstration of the pipeline is available at\\
 \url{https://youtu.be/mKtVg_gYwf8}.\\
@@ -77,7 +77,7 @@ with a multi-level fallback hierarchy. Actions are previewed in a physics
 simulation before replay on the physical robot.
 We evaluate the pipeline on a structured pick-and-place benchmark
 (5-tile grid, 10 grasps per tile, 3 independent runs) achieving an
-$86.7\% \pm 4.2\%$ success rate (95\% CI: $[80.3\%, 91.2\%]$),
+$86.7\% \pm 4.2\%$ success rate,
 and compare it against four vision-language-action (VLA) policies
 (ACT, SmolVLA, $\pi_{0.5}$, GR00T~N1.5) trained on
 leader--follower teleoperation data.
@@ -257,11 +257,11 @@ pipeline stages.
 \node[stage, below=0.2cm of dhand] (depth)
   {(C) Depth Deprojection};
 \node[data, below=0.2cm of depth] (ddepth)
-  {\itshape $\vect{P}_{\text{cam}}$ --- 3D in camera coords};
+  {\itshape $\vect{P}_{\text{cam}}$ --- 3D camera coordinates};
 \node[stage, below=0.2cm of ddepth] (coord)
   {(D) Coordinate Transform};
 \node[data, below=0.2cm of coord] (dcoord)
-  {\itshape $\vect{P}_{\text{robot}}$ --- 3D in robot frame};
+  {\itshape $\vect{P}_{\text{robot}}$ --- 3D robot-frame coordinates};
 \node[stage, below=0.2cm of dcoord] (tgt)
   {Target Pose Computation};
 \node[data, below=0.2cm of tgt] (dtgt)
@@ -269,7 +269,7 @@ pipeline stages.
 \node[stage, below=0.2cm of dtgt] (ik)
   {(E) IK Solver + Gripper Controller};
 \node[data, below=0.2cm of ik] (dik)
-  {\itshape $\boldsymbol{\theta}$ --- joint angles};
+  {\itshape $\vect{q}$ --- joint angles};
 \node[output, below=0.45cm of dik, xshift=-1.25cm] (sim)   {(F) Sim Preview};
 \node[output, below=0.45cm of dik, xshift=1.25cm]  (robot) {(G) SO-ARM101};
 \draw[arr] (cam)   -- (dcam);
@@ -449,29 +449,26 @@ than 50\% of its 21 landmarks have valid depth.
 \label{sec:transform}
 
 All 21 landmarks in camera coordinates $\vect{P}_{\text{cam}}$ are
-transformed to the robot base frame by the rigid-body transformation
-$\mat{R}\,\vect{P}_{\text{cam}} + \vect{t}$.
+transformed to the robot base frame by:
+\begin{equation}\label{eq:transform}
+  \vect{P}_{\text{robot}} = \mat{R}\,\vect{P}_{\text{cam}} + \vect{t}.
+\end{equation}
 All landmark symbols used in subsequent sections ($\vect{P}_1$,
 $\vect{P}_2$, fingertip positions, etc.) refer to robot-frame
 coordinates after this transform has been applied.
-The rotation $\mat{R}$ and translation $\vect{t}$ compose a
-camera-to-robot transform with an optional URDF offset
-($\mat{R} = \mat{R}_{\text{urdf}} \cdot \mat{R}_{\text{cam}}$,
-$\vect{t} = \mat{R}_{\text{urdf}} \cdot \vect{t}_{\text{cam}}
-+ \vect{t}_{\text{urdf}}$).
 
-The camera rotation matrix $\mat{R}_{\text{cam}}$ accounts for the
+The rotation matrix $\mat{R}$ accounts for the
 camera tilt angle $\theta = 50^{\circ}$ below the horizontal
 (Fig.~\ref{fig:bench}):
 \begin{equation}\label{eq:Rcam}
-  \mat{R}_{\text{cam}} =
+  \mat{R} =
   \begin{bmatrix}
     -1 & 0 & 0 \\
     0 & \sin\theta & -\cos\theta \\
     0 & -\cos\theta & -\sin\theta
   \end{bmatrix},
 \end{equation}
-with translation $\vect{t}_{\text{cam}} = (0.04,\; -0.049,\; 0.48)^\top$
+with translation $\vect{t} = (0.04,\; -0.049,\; 0.48)^\top$
 metres. These parameters---including the $50^{\circ}$ mounting angle and
 translation offsets---are extracted directly from the SolidWorks CAD
 assembly that models both the robot and the camera mount bracket at
@@ -575,7 +572,7 @@ $\vect{d}$ with the wrist-to-gripper-centre vector.
   \coordinate (itip) at ({4+\arrlen*\uix},{\arrlen*\uiy});
   % e1: horizontal, gripper width
   \draw[vec, blue, very thick] (tmcp) -- (imcp)
-    node[midway, below=4pt] {$\vect{e}_1$};
+    node[midway, below=12pt] {$\vect{e}_1$};
   % Finger unit vectors at different angles (same visual length)
   \draw[vec, magenta, dashed] (tmcp) -- (ttip)
     node[midway, left] {$\vect{u}_{\text{thumb}}$};
@@ -616,23 +613,22 @@ $\vect{d}$ with the wrist-to-gripper-centre vector.
 
 Given the target pose $(\vect{p}_{\text{target}},
 \vect{q}_{\text{target}})$, we solve for joint angles
-$\vect{\theta} = (\theta_1, \ldots, \theta_5)$ of the 5 arm joints
+$\vect{q} = (q_1, \ldots, q_5)$ of the 5 arm joints
 by solving the following damped-least-squares (DLS)
 problem~\cite{wampler1986dls}:
 \begin{equation}\label{eq:ik}
-  \vect{\theta}^* = \arg\min_{\vect{\theta}}
+  \vect{q}^* = \arg\min_{\vect{q}}
   \bigl\|
-    \text{FK}(\vect{\theta}) - (\vect{p}_{\text{target}},
+    \text{FK}(\vect{q}) - (\vect{p}_{\text{target}},
                                   \vect{q}_{\text{target}})
   \bigr\|^2
-  + \lambda \|\vect{\theta} - \vect{\theta}_{\text{rest}}\|^2,
+  + \lambda \|\vect{q} - \vect{q}_{\text{rest}}\|^2,
 \end{equation}
 where $\text{FK}(\cdot)$ is the forward kinematics function,
-$\vect{\theta}_{\text{rest}}$ is the current joint state (used as the
+$\vect{q}_{\text{rest}}$ is the current joint state (used as the
 rest pose), and $\lambda$ captures per-joint damping extracted from the
-URDF (clamped to $\geq 0.001$ to prevent solver instability).
-The solver uses the PyBullet IK engine and runs up to 100 iterations
-with a residual threshold of $10^{-4}$.
+URDF. The solver uses the PyBullet IK engine and runs up to 100
+iterations with a residual threshold of $10^{-4}$.
 
 Because the arm has only 5 revolute joints for positioning, it cannot
 independently satisfy a full 6-DOF target pose (3 position +
@@ -643,13 +639,12 @@ trade-off is presented in Section~\ref{sec:ikaccuracy}.
 A second EMA filter ($\alpha_{\text{IK}} = 0.5$) is applied to the IK
 solution to suppress temporal jitter in joint space:
 \begin{equation}
-  \hat{\vect{\theta}}_t = \alpha_{\text{IK}}\,\vect{\theta}^*_t
-                        + (1 - \alpha_{\text{IK}})\,\hat{\vect{\theta}}_{t-1}.
+  \hat{\vect{q}}_t = \alpha_{\text{IK}}\,\vect{q}^*_t
+                        + (1 - \alpha_{\text{IK}})\,\hat{\vect{q}}_{t-1}.
 \end{equation}
 This is distinct from the landmark-space EMA
 ($\alpha_{\text{lm}} = 0.8$, Eq.~\ref{eq:ema}), which smooths 2D
-keypoints before deprojection. The two filters operate at different
-stages of the pipeline and are tuned independently.
+keypoints before deprojection.
 
 A safety check rejects any target with $z < 0.05$\,m to prevent
 ground-plane collisions.
@@ -929,12 +924,7 @@ are subsequently replayed on the robot at the target frame rate.
 
 This offline design is deliberate: the pipeline serves as a trajectory
 \emph{generation} tool for data collection, not a real-time
-controller. Notably, the 110\,ms RGB/depth overlay is a diagnostic
-visualisation used during development and can be disabled in deployment,
-which would reduce the per-frame latency to ${\sim}$103\,ms
-(${\sim}$10\,FPS). Further optimisation paths include GPU-accelerated
-hand detection and batched IK solving, which could bring the pipeline
-closer to the 30\,FPS real-time threshold.
+controller.
 
 A key advantage of offline processing is that the pipeline can extract
 robot joint trajectories from \emph{any} pre-recorded RGB-D video
@@ -964,13 +954,16 @@ camera by incorporating simultaneous localisation and mapping (SLAM).
 Table~\ref{tab:successrates} reports the pick-and-place success rates
 on tiles \#1--\#5. The IK retargeting pipeline was evaluated across
 three independent runs of 50 episodes each (150 total episodes),
-achieving $\mathbf{86.7\% \pm 4.2\%}$ success
-(95\% Wilson CI: $[80.3\%, 91.2\%]$) with zero training,
+achieving $\mathbf{86.7\% \pm 4.2\%}$ success with zero training,
 since it analytically maps every operator hand motion to the robot.
 Its failures stem exclusively from thumb/index landmark detection issues
 at certain hand orientations, which prevent the gripper angle from
 being computed (the fallback hierarchy recovers in most but not all
-cases).
+cases). In addition to hand occlusion by surrounding objects, finger
+visibility relative to the egocentric camera plays a key role: failed
+tiles correspond to hand poses where the fingers are aligned with the
+camera axis, causing the palm and back of the hand to partially occlude
+the thumb and index finger from the camera's perspective.
 
 Fig.~\ref{fig:pertile} shows the per-tile breakdown for the IK
 pipeline, averaged across three runs. Tile~\#1 (farthest from the
@@ -1153,12 +1146,12 @@ depth failures.
 
 To quantify the accuracy of the IK solver, we re-ran the full pipeline
 on a recorded pick-and-place demonstration (274 frames) and compared the
-forward kinematics of the solved joint angles $\text{FK}(\vect{\theta}^*)$
+forward kinematics of the solved joint angles $\text{FK}(\vect{q}^*)$
 against the original target pose
 $(\vect{p}_{\text{target}}, \vect{q}_{\text{target}})$ for each frame
 where both were available ($N = 125$).
 
-The mean position error $\|\text{FK}(\vect{\theta}^*) -
+The mean position error $\|\text{FK}(\vect{q}^*) -
 \vect{p}_{\text{target}}\|$ is \textbf{36.4\,mm} (std 2.5\,mm,
 max 43.3\,mm), distributed approximately equally across axes
 (X: 18.4\,mm, Y: 18.2\,mm, Z: 22.7\,mm). The mean orientation error
@@ -1196,7 +1189,7 @@ the raw IK output and the EMA-smoothed output
 ($\alpha_{\text{IK}} = 0.5$).
 EMA smoothing reduces jerk by 57--68\% across all joints, with the
 largest reduction on shoulder pan ($-68\%$) and the smallest on
-wrist roll ($-57\%$). The distal joints (wrist roll, gripper) exhibit
+wrist roll ($-57\%$). The wrist roll and gripper joints exhibit
 the highest raw jerk, consistent with the sensitivity of the IK solver
 to small landmark perturbations at the end of the kinematic chain.
 
@@ -1331,10 +1324,16 @@ per-joint tracking error (commanded position minus achieved position)
 over a representative pick-and-place trajectory.
 The tracking error oscillates around zero (unbiased), confirming
 that the PID tuning (P$=$12, I$=$0, D$=$24) accurately reproduces
-the commanded trajectories on the physical hardware. The wrist flex
-and gripper joints exhibit the largest transient errors, attributable
-to the higher jerk in the commanded trajectories for these distal
-joints (consistent with the smoothness analysis in
+the commanded trajectories on the physical hardware.
+The high-frequency noise visible in the error signal originates from
+the commanded actions themselves, which inherit jitter from the
+MediaPipe landmark detection and IK solving stages. Because the
+oscillation period is on the order of a few frames and the error
+remains centred around zero, the physical robot is correctly smoothing
+through this jitter rather than tracking it---a desirable property of
+the servo PID configuration. The gripper joint exhibits the largest transient errors, attributable
+to the higher jerk in commanded trajectories for this joint
+(consistent with the smoothness analysis in
 Section~\ref{sec:smoothness}) and the inherent servo lag of the
 gripper actuator.
 
@@ -1344,7 +1343,7 @@ gripper actuator.
 \caption{\textbf{Sim-to-real tracking error.} Per-joint tracking error
   (commanded minus achieved position, in motor-space units $[-100, 100]$)
   during physical robot replay. The error oscillates around zero,
-  confirming unbiased tracking. Wrist flex and gripper exhibit the
+  confirming unbiased tracking. The gripper exhibits the
   largest transient errors.}
 \label{fig:simreal}
 \end{figure}
@@ -1352,8 +1351,9 @@ gripper actuator.
 \subsection{Occlusion Mitigation via WiLoR}
 \label{sec:occlusion}
 
-The dominant failure mode in unstructured environments is MediaPipe's
-inability to detect the hand during occlusion by surrounding objects
+The dominant failure mode is MediaPipe's inability to detect the hand
+when it is occluded by surrounding objects or when the hand pose causes
+the fingers to be occluded by the palm from the camera's perspective
 (Section~\ref{sec:inthewild}). MediaPipe Hands uses a two-stage
 architecture: the BlazePalm detector first localises a palm bounding
 box, then a landmark regressor predicts 21 keypoints within that crop.
@@ -1410,7 +1410,7 @@ because DarkNet's object-detection training makes it more robust to
 partial occlusion than BlazePalm's palm-specific detector.
 
 The trade-off is computational: MediaPipe runs on CPU at 30\,Hz, while
-WiLoR requires GPU (or Apple MPS) inference. For our offline pipeline,
+WiLoR requires GPU inference. For our offline pipeline,
 where frames are already processed at ${\sim}$5\,FPS, this overhead is
 acceptable. WiLoR is integrated in our repository as a drop-in
 replacement for the MediaPipe detector (note: WiLoR is released under
@@ -1426,7 +1426,7 @@ We identify the following primary failure modes, separated by context.
         orientations (particularly toward tiles
         \#6--\#9), the thumb and index finger landmarks are poorly
         detected, preventing gripper angle computation. This is the
-        dominant IK failure mode (accounting for all 10\% of lab
+        dominant IK failure mode (accounting for all lab
         failures).
   \item \textbf{Gripper self-occlusion (VLAs)}: The robot's gripper
         can hide the cube in the camera view during the approach
@@ -1467,9 +1467,8 @@ deployment on the SO-ARM101.
 
 On a structured pick-and-place benchmark (tiles \#1--\#5,
 150 episodes across 3 runs), the IK retargeting pipeline achieves
-$86.7\% \pm 4.2\%$ success (95\% CI: $[80.3\%, 91.2\%]$) with
-zero training. The IK solver achieves a mean position error of
-36.4\,mm (12\% of reach), with orientation error dominated by the
+$86.7\% \pm 4.2\%$ success with zero training. The IK solver achieves
+a mean position error of 36.4\,mm, with orientation error dominated by the
 5-DOF kinematic constraint. EMA smoothing reduces trajectory jerk by
 57--68\%, and an ablation study confirms that $\alpha_{\text{IK}} = 0.5$ provides
 a balanced smoothness--responsiveness trade-off.
@@ -1488,24 +1487,11 @@ hand occlusion by surrounding objects is the primary limitation.
         through brief occlusion episodes, learned depth completion,
         or multi-camera setups to maintain landmark visibility in
         heavily cluttered environments.
-  \item \textbf{Real-time operation}: Removing the diagnostic overlay
-        ($-110$\,ms), GPU-accelerated hand detection, and batched IK
-        solving to approach real-time throughput.
-  \item \textbf{Higher-DOF manipulators}: The 5-DOF arm's inability to
-        independently control end-effector orientation (163$^{\circ}$
-        mean error) motivates deployment on 6+ DOF arms for full
-        pose control.
   \item \textbf{6-DoF grasp pose estimation}: Replacing the
         geometric thumb--index angle with a learned grasp-pose
         predictor to handle diverse object shapes and materials.
   \item \textbf{Dual-arm extension}: Extending to simultaneous
         bimanual control.
-  \item \textbf{IK demonstrations for VLA training}: Using IK-collected
-        trajectories as training data for VLA policies, potentially
-        avoiding the gripper self-occlusion issue present in
-        leader--follower teleoperation data.
-  \item \textbf{Larger workspace}: Adaptive camera-to-robot calibration
-        for dynamic operator positioning.
 \end{itemize}
 
 \section*{Acknowledgment}
@@ -1628,10 +1614,7 @@ is a Lecturer in the Department of Mechanical Engineering at the
 University of California, Berkeley. He received a doctorate degree in
 automatic control theory from UC Berkeley in 2004. His research
 interests include modeling, simulation, and control of engineering
-systems. He supervises capstone projects with the Master of
-Engineering program of the Fung Institute, covering robotics,
-machine learning, and related areas. He is the author of over 50 papers
-in various areas of engineering.
+systems.
 \end{IEEEbiographynophoto}
 
 \EOD

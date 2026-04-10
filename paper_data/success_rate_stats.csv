@@ -1,0 +1,15 @@
+run,tile_1,tile_2,tile_3,tile_4,tile_5,total,rate
+Run 1 (original),10,10,9,9,7,45,0.9000
+Run 2,10,9,7,9,6,41,0.8200
+Run 3,10,9,8,10,7,44,0.8800
+
+mean_rate,0.8667
+std_rate,0.0416
+pooled_successes,130
+pooled_trials,150
+pooled_rate,0.8667
+wilson_ci_lower,0.8030
+wilson_ci_upper,0.9120
+
+tile_means,10.0,9.3,8.0,9.3,6.7
+tile_stds,0.00,0.58,1.00,0.58,0.58

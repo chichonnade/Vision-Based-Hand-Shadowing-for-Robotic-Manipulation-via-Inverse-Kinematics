@@ -76,6 +76,7 @@ class HumanToRobotPipeline:
         self.bag_output_path = bag_output_path
         self.export_actions_dir = export_actions_dir
         self.recorded_actions = [] if self.export_actions_dir else None
+        self.recorded_target_poses = [] if self.export_actions_dir else None
         self.operation_mode = operation_mode
         if self.operation_mode == OperationMode.RECORD_BAG:
             display_landmarks = True
@@ -270,7 +271,7 @@ class HumanToRobotPipeline:
             return False
 
     def _record_actions(self, control_commands: types.RobotControlCommands):
-        """Record robot actions for later export."""
+        """Record robot actions and target poses for later export."""
         left_joints, right_joints = control_commands.robot_commands
 
         left_action = left_joints if left_joints is not None else [np.nan] * 6
@@ -279,6 +280,18 @@ class HumanToRobotPipeline:
         action = np.stack([left_action, right_action], axis=0).astype(np.float32)
         if self.recorded_actions is not None:
             self.recorded_actions.append(action)
+
+        if self.recorded_target_poses is not None:
+            arm_ctrl = self.robot_controller._arm_controller
+            nan3 = (np.nan, np.nan, np.nan)
+            nan4 = (np.nan, np.nan, np.nan, np.nan)
+            left_pos = arm_ctrl.last_left_target_pos or nan3
+            left_orn = arm_ctrl.last_left_target_orn or nan4
+            right_pos = arm_ctrl.last_right_target_pos or nan3
+            right_orn = arm_ctrl.last_right_target_orn or nan4
+            self.recorded_target_poses.append(np.array(
+                [list(left_pos) + list(left_orn) + list(right_pos) + list(right_orn)],
+                dtype=np.float32).flatten())
 
     def _apply_control_commands(self, control_commands: types.RobotControlCommands):
         """Apply control commands to the simulation."""
@@ -302,7 +315,7 @@ class HumanToRobotPipeline:
         )
 
     def _save_actions(self):
-        """Save recorded actions to a .npy file."""
+        """Save recorded actions and target poses to .npy files."""
         if not self.recorded_actions:
             print("No actions recorded, skipping save.")
             return
@@ -318,6 +331,13 @@ class HumanToRobotPipeline:
 
                 print(f"💾 Saving {len(self.recorded_actions)} actions to {output_path}")
                 np.save(output_path, actions_array)
+
+                if self.recorded_target_poses:
+                    poses_name = os.path.splitext(base_name)[0] + "_target_poses.npy"
+                    poses_path = os.path.join(self.export_actions_dir, poses_name)
+                    poses_array = np.array(self.recorded_target_poses)
+                    print(f"💾 Saving {len(self.recorded_target_poses)} target poses to {poses_path}")
+                    np.save(poses_path, poses_array)
 
     def _update_stage_time(self, stage_name: str, duration: float):
         """Update timing statistics for a pipeline stage."""

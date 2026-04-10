@@ -1,0 +1,12 @@
+metric,raw,smoothed,reduction_pct
+pos_jitter_mean_mm,5.7506,4.5245,21.3
+pos_jitter_std_mm,15.4300,11.4125,26.0
+pos_jitter_max_mm,327.2951,232.0265,
+pos_jitter_median_mm,2.8689,2.6850,
+orn_jitter_mean_deg,3.8851,2.4199,37.7
+orn_jitter_std_deg,11.1602,6.1494,
+orn_jitter_max_deg,178.3149,90.8436,
+
+workspace_x_range_mm,306.2
+workspace_y_range_mm,449.4
+workspace_z_range_mm,299.3

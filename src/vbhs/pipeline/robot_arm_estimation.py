@@ -94,6 +94,12 @@ class RobotArmCommandsFromHandLandmarks(
         self._prev_left_angles: Optional[list[float]] = None
         self._prev_right_angles: Optional[list[float]] = None
 
+        # Last computed target poses (for diagnostics/evaluation)
+        self.last_left_target_pos: Optional[tuple[float, float, float]] = None
+        self.last_left_target_orn: Optional[tuple[float, float, float, float]] = None
+        self.last_right_target_pos: Optional[tuple[float, float, float]] = None
+        self.last_right_target_orn: Optional[tuple[float, float, float, float]] = None
+
         self._left_ik_solver = inverse_kinematics.IKSolver(
             robot_id=self.robot_id,
             end_effector_idx=self.left_end_effector,
@@ -202,6 +208,13 @@ class RobotArmCommandsFromHandLandmarks(
 
         if target_pos is None:
             return None
+
+        if arm == 'left':
+            self.last_left_target_pos = tuple(target_pos)
+            self.last_left_target_orn = tuple(orientation_quat) if orientation_quat is not None else None
+        else:
+            self.last_right_target_pos = tuple(target_pos)
+            self.last_right_target_orn = tuple(orientation_quat) if orientation_quat is not None else None
 
         joint_angles = ik_solver.solve(target_pos, orientation_quat)
         
