@@ -122,10 +122,13 @@ class WilorHandDetector(hand_detector.HandDetector):
                 key: (int(keypoints_2d[index][0]), int(keypoints_2d[index][1]))
                 for key, index in config.WILOR_HAND_LANDMARKS.items()
             }
+            # NOTE: WiLoR/MANO is_right labels are from the perspective of
+            # someone facing the camera, same as MediaPipe. Swap for
+            # egocentric (FPV) perspective.
             if is_right:
-                right_hand_landmarks = landmarks
-            else:
                 left_hand_landmarks = landmarks
+            else:
+                right_hand_landmarks = landmarks
 
         # Visualize if enabled
         if self._enable_visualization:

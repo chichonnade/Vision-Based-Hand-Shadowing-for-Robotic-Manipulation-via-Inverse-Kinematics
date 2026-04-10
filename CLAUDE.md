@@ -6,27 +6,20 @@
 1. **paper.tex**: All professor requests addressed (27/27), ~75% of IEEE reviewer concerns addressed
 2. **paper.tex**: "system" -> "pipeline" consistency fix (3 occurrences)  
 3. **paper.tex**: Added paragraph reframing offline 5 FPS processing as a feature for generating imitation-learning action labels from pre-recorded RGB-D video
-4. **scripts/compare_hand_detectors.py**: New script to compare MediaPipe vs WiLoR hand detection rate and valid IK target rate on a recorded .bag file
+4. **scripts/compare_hand_detectors.py**: Comparison script run on `data/human_demo_short.bag` (347 frames). Results: MediaPipe 62.8% detection / 59.9% valid IK target; WiLoR 67.7% / 64.8% (+7.8% / +8.2%). WiLoR recovered 12 frames (3.5%) that MediaPipe missed.
+5. **wilor_hand_detector.py**: Fixed handedness bug -- WiLoR's MANO `is_right` was in facing-perspective convention (same as MediaPipe's raw labels), so it now swaps for egocentric (FPV) view, matching MediaPipe's swap logic.
+6. **paper.tex**: Added Section "Occlusion Mitigation via WiLoR" (after Joint Saturation Analysis) with Table comparing MediaPipe vs WiLoR on 347-frame recording
+7. **paper.tex**: Updated Related Work (II.A) to cross-reference WiLoR occlusion evaluation
+8. **paper.tex**: Updated Hand Detection Reliability section with WiLoR cross-reference
+9. **paper.tex**: Updated In-the-Wild Evaluation to reference occlusion mitigation section
+10. **paper.tex**: Updated Future Work occlusion bullet to note WiLoR is implemented/evaluated
+11. **paper.tex**: Updated Abstract to mention WiLoR occlusion mitigation
+12. **paper.tex**: Verified no remaining "system" references to the authors' pipeline
 
-### What's Left (in order)
-1. **Run the comparison script** on the Mac (where `vbhs` conda env is set up):
-   ```bash
-   conda activate vbhs
-   python scripts/compare_hand_detectors.py
-   ```
-   The script processes `new experiment data (realsense bag file...)/human_demo.bag` and compares both detectors on detection rate and valid IK target rate.
-
-2. **Add occlusion mitigation section to paper.tex** (Section VI.J) using the script results:
-   - Root cause: MediaPipe's BlazePalm detector fails entirely during occlusion, so no landmarks at all
-   - WiLoR's DarkNet localizer is more robust to partial occlusion
-   - Report quantitative comparison: detection rate, valid IK target rate, recovery frames
-   - Note trade-off: WiLoR requires GPU vs MediaPipe CPU-only
-
-3. **Update Related Work** (Section II.A): Strengthen WiLoR citation to note it as the occlusion-robust alternative tested in Section VI.J
-
-4. **Update Future Work** (Section VII): Revise occlusion bullet to note WiLoR integration is implemented and evaluated; temporal Kalman filtering and multi-camera remain future work
-
-5. **Verify**: grep for "system" in paper.tex, ensure no remaining instances refer to the authors' pipeline
+### What's Left
+- **Remaining IEEE reviewer concerns** not yet addressed (see REVISION_PLAN.md tasks 8-15 for experimental additions that may need user-provided data: D1-D5)
+- **Compile paper.tex** to verify no LaTeX errors (no LaTeX installed on this Mac)
+- **Draft response-to-reviewers document** (REVISION_PLAN.md task 17)
 
 ### Key Files
 - `IEEE_publication/paper.tex` -- the paper being revised
@@ -34,8 +27,11 @@
 - `IEEE request/email.md` -- IEEE reviewer comments (4 reviewers)
 - `Professor request/REQUEST.MD` -- professor feedback
 - `REVISION_PLAN.md` -- original revision plan (predates this session)
-- `src/vbhs/pipeline/hands/wilor_hand_detector.py` -- WiLoR detector (already integrated)
+- `src/vbhs/pipeline/hands/wilor_hand_detector.py` -- WiLoR detector (handedness fixed)
 - `src/vbhs/pipeline/hands/mediapipe_hand_detector.py` -- MediaPipe detector
 
-### Bag File for Testing
-`new experiment data (realsense bag file with associated computed actions data for pick and place/human_demo.bag` (1.4 GB)
+### Conda Environment
+The conda env is called `env` (not `vbhs`): `conda activate env`
+
+### Bag Files for Testing
+- `data/human_demo_short.bag` -- short recording (347 frames, 1.7 GB) used for comparison
