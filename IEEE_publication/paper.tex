@@ -1412,8 +1412,9 @@ partial occlusion than BlazePalm's palm-specific detector.
 The trade-off is computational: MediaPipe runs on CPU at 30\,Hz, while
 WiLoR requires GPU (or Apple MPS) inference. For our offline pipeline,
 where frames are already processed at ${\sim}$5\,FPS, this overhead is
-acceptable. WiLoR's integration is available in the open-source
-repository as a drop-in replacement for the MediaPipe detector.
+acceptable. WiLoR is integrated in our repository as a drop-in
+replacement for the MediaPipe detector (note: WiLoR is released under
+a non-commercial license).
 
 \subsection{Failure Modes}
 
