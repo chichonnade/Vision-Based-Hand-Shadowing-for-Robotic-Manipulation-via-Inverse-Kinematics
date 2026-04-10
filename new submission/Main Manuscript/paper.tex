@@ -652,9 +652,11 @@ ground-plane collisions.
 \subsection{Gripper Control}
 \label{sec:gripper}
 
+Let $\vect{p}_{\text{thumb}}$ and $\vect{p}_{\text{index}}$ denote
+the thumb tip and index fingertip positions in robot-frame coordinates.
 The target gripper angle $\phi_{\text{target}}$ is computed from the
 angular separation between vectors from the gripper centre
-($\vect{p}_{\text{target}}$) to the thumb and index finger:
+($\vect{p}_{\text{target}}$) to these two fingertips:
 \begin{equation}\label{eq:gripper}
   \phi_{\text{target}} = \arccos\!\left(
     \frac{(\vect{p}_{\text{thumb}} - \vect{p}_{\text{target}})
@@ -718,9 +720,10 @@ to train imitation-learning policies.
 \label{sec:deployment}
 
 Validated actions are deployed on the physical SO-ARM101 via the
-LeRobot~\cite{lerobot2024} framework. Joint angles from the IK solver
-(in radians) are normalised to $[0, 1]$ using the joint range
-limits (Table~\ref{tab:joints}) and converted to motor commands:
+LeRobot~\cite{lerobot2024} framework. Each joint angle from the IK
+solver (in radians) is normalised to $a_{\text{norm}} \in [0, 1]$
+using the joint range limits (Table~\ref{tab:joints}) and converted
+to a motor command $a_{\text{motor}}$:
 \begin{equation}
   a_{\text{motor}} =
   \begin{cases}
