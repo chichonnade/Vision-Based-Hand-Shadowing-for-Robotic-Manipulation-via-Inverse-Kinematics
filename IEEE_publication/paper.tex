@@ -720,15 +720,17 @@ to train imitation-learning policies.
 \label{sec:deployment}
 
 Validated actions are deployed on the physical SO-ARM101 via the
-LeRobot~\cite{lerobot2024} framework. Each joint angle from the IK
-solver (in radians) is normalised to $a_{\text{norm}} \in [0, 1]$
-using the joint range limits (Table~\ref{tab:joints}) and converted
-to a motor command $a_{\text{motor}}$:
+LeRobot~\cite{lerobot2024} framework. Each solved joint angle $q_i$
+is linearly mapped to a normalised action
+$a_{\text{norm}} = (q_i - q_{\min}) / (q_{\max} - q_{\min}) \in [0, 1]$
+using the per-joint limits in Table~\ref{tab:joints}, then converted
+to a motor command $a_{\text{motor}}$ following the LeRobot
+motor-space convention for STS3215 servos:
 \begin{equation}
   a_{\text{motor}} =
   \begin{cases}
-    (a_{\text{norm}} - 0.5) \times 200 & \text{arm joints}, \\
-    a_{\text{norm}} \times 100 & \text{gripper joint}.
+    (a_{\text{norm}} - 0.5) \times 200 & \text{arm joints} \;\in [-100, 100], \\
+    a_{\text{norm}} \times 100 & \text{gripper} \;\in [0, 100].
   \end{cases}
 \end{equation}
 
