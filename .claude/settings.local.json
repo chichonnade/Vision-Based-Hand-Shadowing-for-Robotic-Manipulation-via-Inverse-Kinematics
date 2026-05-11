@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c ':*)",
+      "Bash(/c/Users/hendrik.chiche/AppData/Local/Programs/Python/Python312/python -c ':*)",
+      "Bash(grep -r \"class.*Detector\\\\|def detect\" /c/Users/hendrik.chiche/repos2/Vision-Based-Hand-Shadowing/src/vbhs/pipeline/hands/*.py)",
+      "Bash(python scripts/compare_hand_detectors.py)",
+      "Bash(pip show:*)",
+      "Bash(python -c ':*)"
+    ]
+  }
+}
